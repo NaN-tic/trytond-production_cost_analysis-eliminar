@@ -6,6 +6,8 @@ this repository contains the full copyright notices and license terms. -->
     <field name="product"/>
     <label name="cost_plan"/>
     <field name="cost_plan"/>
+    <label name="list_price"/>
+    <field name="list_price"/>
     <label name="cost_price"/>
     <field name="cost_price"/>
     <label name="gross_margin"/>

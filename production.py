@@ -5,7 +5,9 @@ from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.modules.product import price_digits
 from trytond.pyson import Eval
+from trytond.config import config
 
+price_digits = (16, config.getint('product', 'price_decimal', default=4))
 
 class Production(metaclass=PoolMeta):
     __name__ = 'production'
@@ -88,17 +90,17 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
     cost_plan = fields.Many2One('product.cost.plan', 'Cost Plan',
         readonly=True)
     gross_margin = fields.Function(fields.Numeric('Gross Margin',
-        digits=(16, 2)), 'get_calc_fields')
+        digits=price_digits), 'get_calc_fields')
     gross_teoric_margin = fields.Function(fields.Numeric(
-        'Teoric Gross Margin', digits=(16, 2)), 'get_calc_fields')
+        'Teoric Gross Margin', digits=price_digits), 'get_calc_fields')
     gross_total = fields.Function(fields.Numeric(
-        'Gross Total', digits=(16, 2)), 'get_calc_fields')
+        'Gross Total', digits=price_digits), 'get_calc_fields')
     gross_teoric_total = fields.Function(fields.Numeric(
-        'Teoric Gross Total', digits=(16, 2)), 'get_calc_fields')
+        'Teoric Gross Total', digits=price_digits), 'get_calc_fields')
     price_hour = fields.Function(fields.Numeric(
-        'Price Hour', digits=(16, 2)), 'get_calc_fields')
+        'Price Hour', digits=price_digits), 'get_calc_fields')
     teoric_price_hour = fields.Function(fields.Numeric(
-        'Teoric Price Hour', digits=(16, 2)), 'get_calc_fields')
+        'Teoric Price Hour', digits=price_digits), 'get_calc_fields')
     outputs_costs = fields.Function(fields.One2Many(
         'production.cost.analysis.move', None, 'Teoric Output Costs',
         domain=[('type_', '=', 'out'), ('kind', '=', 'teoric')]),
@@ -233,8 +235,9 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                 real_output_price = float(sum([float(x.unit_price) * x.quantity
                     for x in cost.real_outputs_costs])) / real_output_qty
 
-            res['gross_margin'][cost.id] = Decimal(cost.list_price or 0
-                - real_output_price).quantize(Decimal(10) ** -price_digits[1])
+            res['gross_margin'][cost.id] = Decimal(float(cost.list_price or 0)
+                - (real_output_price or 0)
+                ).quantize(Decimal(10) ** -price_digits[1])
 
             output_qty = sum([x.quantity
                 for x in cost.outputs_costs])  # TODO: compute_qty
@@ -243,25 +246,19 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                 output_price = float(sum([float(x.unit_price) * x.quantity
                     for x in cost.outputs_costs])) / output_qty
             res['gross_teoric_margin'][cost.id] = Decimal(cost.list_price
-                or 0 - output_price).quantize(Decimal(10) ** -price_digits[1])
+                - cost.cost_price).quantize(Decimal(10) ** -price_digits[1])
             res['gross_total'][cost.id] = (
                 float(res['gross_margin'][cost.id]) * real_output_qty)
-            res['gross_teoric_margin'][cost.id] = (
+            res['gross_teoric_total'][cost.id] = (
                 float(res['gross_teoric_total'][cost.id]) * output_qty)
 
-            top_total = sum([x.total for x in cost.operation_teoric_costs])
-            rop_total = sum([x.total for x in cost.operation_real_costs])
+            top_total = sum([x.quantity for x in cost.operation_teoric_costs])
+            rop_total = sum([x.quantity for x in cost.operation_real_costs])
 
-            tph = 0
-            if top_total:
-                tph = sum([x.total * (x.unit_price or 0) for x in
-                    cost.operation_teoric_costs]) / top_total
-            res['teoric_price_hour'][cost.id] = tph
-            rop = 0
             if rop_total:
-                rop = sum([x.total * (x.unit_price or 0) for x in
-                    cost.operation_real_costs]) / rop_total
-            res['price_hour'][cost.id] = rop
+                res['price_hour'][cost.id] = real_output_price/rop_total
+            if top_total:
+                res['teoric_price_hour'][cost.id] = real_output_price/top_total
 
         return res
 
@@ -296,6 +293,12 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             move_cost.type_ = type_
             move_cost.uom = move.product.default_uom
             move_cost.unit_price = move.unit_price or move.product.list_price
+            if type == 'output':
+                product = move.product
+                production = move.production
+                hours = [x.quantity for x in production.operations]
+                move_cost.unit_price = move.quantity * (product.list_price -
+                    product.cost_price) / hours
             move_cost.kind = kind
             result.append(move_cost)
         return result
@@ -317,7 +320,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                 move_cost.type_ = type_
                 move_cost.kind = kind
                 move_cost.uom = move.product.default_uom
-                move_cost.unit_price = move.product.list_price
+                move_cost.unit_price = move.unit_price
                 move_cost.cost_price = move.cost_price
                 move_cost.quantity = move.quantity
                 move_cost.total = move.total
@@ -329,6 +332,9 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                         move.quantity + move_cost.quantity)).quantize(
                             Decimal(10) ** -price_digits[1])
                 move_cost.quantity += move.quantity
+                move_cost.unit_price = (move.unit_price * move.quantity +
+                    move_cost.unit_price * move_cost.quantity) / (
+                        move_cost.quantity + move.quantity)
                 move_cost.total += move.total
 
         MoveCost.delete(to_delete)
