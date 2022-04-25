@@ -245,8 +245,8 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             if output_qty:
                 output_price = float(sum([float(x.unit_price) * x.quantity
                     for x in cost.outputs_costs])) / output_qty
-            res['gross_teoric_margin'][cost.id] = Decimal(cost.list_price
-                - cost.cost_price).quantize(Decimal(10) ** -price_digits[1])
+            res['gross_teoric_margin'][cost.id] = Decimal((cost.list_price or 0)
+                - (cost.cost_price or 0)).quantize(Decimal(10) ** -price_digits[1])
             res['gross_total'][cost.id] = (
                 float(res['gross_margin'][cost.id]) * real_output_qty)
             res['gross_teoric_total'][cost.id] = (
