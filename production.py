@@ -22,6 +22,7 @@ class Production(metaclass=PoolMeta):
         if self.production_cost_analysis:
             return self.production_cost_analysis
         cost = CostAnalysis()
+        cost.number = self.number
         cost.inputs_costs = []
         cost.outputs_costs = []
         cost.product = self.product
@@ -82,6 +83,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
     ''' Production Cost Analysis '''
     __name__ = 'production.cost.analysis'
 
+    number = fields.Char('Number', readonly=True)
     product = fields.Many2One('product.product', 'Product', readonly=True)
     cost_price = fields.Numeric("Cost Price", digits=price_digits,
         readonly=True)
@@ -332,9 +334,11 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                         move.quantity + move_cost.quantity)).quantize(
                             Decimal(10) ** -price_digits[1])
                 move_cost.quantity += move.quantity
-                move_cost.unit_price = (move.unit_price * move.quantity +
-                    move_cost.unit_price * move_cost.quantity) / (
-                        move_cost.quantity + move.quantity)
+                move_cost.unit_price = Decimal((
+                    float(move.unit_price) * move.quantity +
+                    float(move_cost.unit_price) * move_cost.quantity) / (
+                        move_cost.quantity + move.quantity)).quantize(
+                            Decimal(10) ** -price_digits[1])
                 move_cost.total += move.total
 
         MoveCost.delete(to_delete)
@@ -496,7 +500,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             dev.work_center_category = real.work_center_category
         else:
             dev.quantity = real.quantity
-            dev.quantity_deviation = teoric.quantity - real.quantity
+            dev.quantity_deviation = round(teoric.quantity - real.quantity,2)
             dev.uom = teoric.uom
             dev.total = real.total
             dev.total_deviation = Decimal((teoric.total or 0)
