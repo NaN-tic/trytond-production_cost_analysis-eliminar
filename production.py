@@ -75,7 +75,8 @@ class Production(metaclass=PoolMeta):
 
         production.production_cost_analysis = self.production_cost_analysis
         production.save()
-        self.production_cost_analysis.update_output_teoric(self.outputs)
+        if self.production_cost_analysis:
+            self.production_cost_analysis.update_output_teoric(self.outputs)
         return production
 
 
