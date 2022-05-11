@@ -54,8 +54,10 @@ class Production(metaclass=PoolMeta):
     def done(cls, productions):
         super().done(productions)
         costanalysis = Pool().get('production.cost.analysis')
-        costs = set([x.production_cost_analysis for x in productions])
-        costanalysis.create_cost_moves(costs)
+        costs = set([x.production_cost_analysis for x in productions
+            if x.production_cost_analysis])
+        if costs:
+            costanalysis.create_cost_moves(costs)
         for cost in costs:
             cost.calc_deviation()
 
