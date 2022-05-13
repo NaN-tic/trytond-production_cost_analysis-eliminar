@@ -290,7 +290,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             move_cost.analysis = self
             move_cost.cost_price = Decimal(cost_price).quantize(
                 Decimal(10) ** -price_digits[1])
-            move_cost.quantity = move.quantity
+            move_cost.quantity = round(move.quantity, 2)
             move_cost.total = Decimal(cost_price * move.quantity).quantize(
                 Decimal(10) ** -price_digits[1])
             move_cost.stock_move = move
@@ -336,7 +336,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                     + float(move_cost.cost_price) * move_cost.quantity) / (
                         move.quantity + move_cost.quantity)).quantize(
                             Decimal(10) ** -price_digits[1])
-                move_cost.quantity += move.quantity
+                move_cost.quantity = round(move_cost.quantity + move.quantity, 2)
                 move_cost.unit_price = Decimal((
                     float(move.unit_price) * move.quantity +
                     float(move_cost.unit_price) * move_cost.quantity) / (
@@ -370,11 +370,14 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                 op_cost.kind = kind
                 res[key] = op_cost
             else:
-                op_cost.unit_price = Decimal(
-                    float(op.total + op_cost.total) / (
-                        op.quantity + op_cost.quantity)).quantize(
+                qty = op.quantity + op_cost.quantity
+                if not qty:
+                    op_cost.unit_price = 0
+                else:
+                    op_cost.unit_price = Decimal(
+                        float(op.total + op_cost.total) / qty).quantize(
                             Decimal(10) ** -price_digits[1])
-                op_cost.quantity += op.quantity
+                op_cost.quantity = round(op_cost.quantity + op.quantity, 2)
                 op_cost.total += op.total
 
         OperationCost.delete(to_delete)
@@ -483,7 +486,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
 
         if teoric and not real:
             dev.quantity = teoric.quantity
-            dev.quantity_deviation = -teoric.quantity
+            dev.quantity_deviation = round(-teoric.quantity, 2)
             dev.total = teoric.total
             dev.total_deviation = -teoric.total
             dev.unit_price = teoric.unit_price
@@ -526,7 +529,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
 
         if teoric and not real:
             dev.quantity = teoric.quantity
-            dev.quantity_deviation = -teoric.quantity
+            dev.quantity_deviation = round(-teoric.quantity, 2)
             dev.total = teoric.total
             dev.total_deviation = -teoric.total
             dev.unit_price = teoric.unit_price
@@ -535,7 +538,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             dev.product = teoric.product
         elif real and not teoric:
             dev.quantity = 0
-            dev.quantity_deviation = real.quantity
+            dev.quantity_deviation = round(real.quantity, 2)
             dev.total = 0
             dev.total_deviation = real.total
             dev.unit_price = 0
@@ -545,7 +548,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         else:
             dev.product = real.product
             dev.quantity = real.quantity
-            dev.quantity_deviation = real.quantity - teoric.quantity
+            dev.quantity_deviation = round(real.quantity - teoric.quantity, 2)
             dev.uom = teoric.uom
             dev.total = real.total
             dev.total_deviation = Decimal(real.total - teoric.total).quantize(
