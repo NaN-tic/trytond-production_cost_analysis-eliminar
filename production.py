@@ -255,7 +255,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             res['gross_total'][cost.id] = (
                 float(res['gross_margin'][cost.id]) * real_output_qty)
             res['gross_teoric_total'][cost.id] = (
-                float(res['gross_teoric_total'][cost.id]) * output_qty)
+                float(res['gross_teoric_margin'][cost.id]) * real_output_qty)
 
             top_total = sum([x.quantity for x in cost.operation_teoric_costs])
             rop_total = sum([x.quantity for x in cost.operation_real_costs])
@@ -318,7 +318,11 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             if not move.stock_move or move.type_ != type_ or move.kind != kind:
                 continue
 
-            if move.product not in res:
+            move.quantity = move.stock_move.quantity
+            move.save()
+
+            move_cost = res.get(move.product)
+            if not move_cost:
                 move_cost = MoveCost()
                 move_cost.analysis = self
                 move_cost.product = move.product
@@ -556,6 +560,9 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             dev.unit_price = teoric.unit_price
             dev.unit_price_deviation = real.unit_price - teoric.unit_price
 
+        if dev.total_deviation == 0:
+            return None
+
         return dev
 
     def calc_deviation(self):
@@ -577,7 +584,8 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             for tmove in teoric_moves.values():
                 if tmove.product not in real_moves:
                     dev = self.get_deviation_move(tmove, None, type_)
-                    to_save.append(dev)
+                    if dev:
+                        to_save.append(dev)
                     continue
                 rmove = real_moves[tmove.product]
                 if not (rmove.cost_price != tmove.cost_price
@@ -585,12 +593,14 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                     continue
 
                 dev = self.get_deviation_move(tmove, rmove, type_)
-                to_save.append(dev)
+                if dev:
+                    to_save.append(dev)
 
             for rmove in real_moves.values():
                 if rmove.product not in teoric_moves:
                     dev = self.get_deviation_move(None, rmove, type_)
-                    to_save.append(dev)
+                    if dev:
+                        to_save.append(dev)
 
         teoric_op = dict(
             ((x.operation_type, x.work_center_category), x)
