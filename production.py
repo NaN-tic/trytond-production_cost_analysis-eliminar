@@ -74,6 +74,10 @@ class Production(metaclass=PoolMeta):
     def _split_production(self, number, quantity, uom, input2qty, output2qty):
         production = super()._split_production(number, quantity, uom,
             input2qty, output2qty)
+        if not self.production_cost_analysis:
+            self.production_cost_analysis = \
+                    self.create_production_cost_analysis()
+            self.save()
 
         production.production_cost_analysis = self.production_cost_analysis
         production.save()
