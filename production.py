@@ -432,7 +432,8 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         operations = [x.operation for x in costs]
         for prod in productions:
             for op in prod.operations:
-                if op in operations:
+                if op in operations or (op.work_center_category and
+                        op.work_center_category.type != 'employee'):
                     continue
 
                 op_cost = OperationCost()
