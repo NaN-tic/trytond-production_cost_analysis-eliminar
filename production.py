@@ -265,9 +265,11 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             rop_total = sum([x.quantity for x in cost.operation_real_costs])
 
             if rop_total:
-                res['price_hour'][cost.id] = real_output_price/rop_total
+                res['price_hour'][cost.id] = (
+                    res['gross_total'][cost.id]/rop_total)
             if top_total:
-                res['teoric_price_hour'][cost.id] = real_output_price/top_total
+                res['teoric_price_hour'][cost.id] = (
+                    res['gross_teoric_total'][cost.id]/top_total)
 
         return res
 
@@ -322,8 +324,17 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             if not move.stock_move or move.type_ != type_ or move.kind != kind:
                 continue
 
-            move.quantity = move.stock_move.quantity
-            move.save()
+            smove = move.stock_move
+            production = smove.production_input or smove.production_output
+
+            if (type_ == 'in' and kind == 'teoric' and production and
+                production.state not in  ('draft', 'waiting')) or (
+                (type_ == 'out' and kind == 'teoric' and production and
+                    production.state not in  ('draft', 'waiting'))):
+                pass
+            else:
+                move.quantity = move.stock_move.quantity
+                move.save()
 
             move_cost = res.get(move.product)
             if not move_cost:
