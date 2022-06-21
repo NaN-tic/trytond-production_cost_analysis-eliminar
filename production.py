@@ -6,6 +6,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.modules.product import price_digits
 from trytond.pyson import Eval
 from trytond.config import config
+from trytond.transaction import Transaction
 
 price_digits = (16, config.getint('product', 'price_decimal', default=4))
 
@@ -90,6 +91,8 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
     ''' Production Cost Analysis '''
     __name__ = 'production.cost.analysis'
 
+    company = fields.Many2One('company.company', 'Company', required=True,
+        readonly=True)
     number = fields.Char('Number', readonly=True)
     product = fields.Many2One('product.product', 'Product', readonly=True)
     cost_price = fields.Numeric("Cost Price", digits=price_digits,
@@ -166,6 +169,10 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         cls._buttons.update({
             'update': {}
         })
+
+    @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
 
     @fields.depends('costs')
     def on_change_with_inputs_costs(self, name=None):
@@ -576,7 +583,8 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             dev.unit_price = teoric.unit_price
             dev.unit_price_deviation = real.unit_price - teoric.unit_price
 
-        if dev.total_deviation == 0:
+        if (dev.total_deviation == 0 and dev.quantity_deviation == 0 and
+                dev.unit_price_devitation == 0):
             return None
 
         return dev

@@ -11,4 +11,5 @@ copyright notices and license terms. -->
     <field name="gross_teoric_total"/>
     <field name="price_hour"/>
     <field name="teoric_price_hour"/>
+    <field name="company"/>
 </tree>
