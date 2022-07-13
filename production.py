@@ -33,9 +33,9 @@ class Production(metaclass=PoolMeta):
             or self.product.cost_price or 0)
         return cost
 
-    @classmethod
-    def draft(cls, productions):
-        pass
+    # @classmethod
+    # def draft(cls, productions):
+    #     pass
 
     @classmethod
     def wait(cls, productions):
@@ -73,6 +73,9 @@ class Production(metaclass=PoolMeta):
         return super().copy(productions, default=default)
 
     def _split_production(self, number, quantity, uom, input2qty, output2qty):
+        pool = Pool()
+        CostAnalysis = pool.get('production.cost.analysis')
+
         production = super()._split_production(number, quantity, uom,
             input2qty, output2qty)
         if not self.production_cost_analysis:
@@ -80,10 +83,10 @@ class Production(metaclass=PoolMeta):
                     self.create_production_cost_analysis()
             self.save()
 
+        cost = self.production_cost_analysis
         production.production_cost_analysis = self.production_cost_analysis
         production.save()
-        if self.production_cost_analysis:
-            self.production_cost_analysis.update_output_teoric(self.outputs)
+        CostAnalysis.create_cost_moves([cost])
         return production
 
 
@@ -482,16 +485,10 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         outputs = []
         cost_moves = []
         for prod in self.productions:
-            if prod.state not in ('waiting', 'assigned'):
+            if prod.state not in ('draft', 'waiting', 'assigned'):
                 continue
             inputs += prod.inputs
-            outputs += prod.outputs
-        if inputs:
-            cost_moves = self.get_move_costs(inputs, 'in', 'teoric')
-        if outputs:
-            cost_moves += self.get_move_costs(outputs, 'out', 'teoric')
         return cost_moves
-
     def calc_real_moves(self):
         inputs = []
         outputs = []
@@ -584,7 +581,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             dev.unit_price_deviation = real.unit_price - teoric.unit_price
 
         if (dev.total_deviation == 0 and dev.quantity_deviation == 0 and
-                dev.unit_price_devitation == 0):
+                dev.unit_price_deviation == 0):
             return None
 
         return dev
