@@ -330,6 +330,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         to_delete = [x for x in self.costs if not x.stock_move
             and x.type_ == type_ and x.kind == kind]
         res = {}
+
         for move in self.costs:
             if not move.stock_move or move.type_ != type_ or move.kind != kind:
                 continue
@@ -418,6 +419,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         OperationCost = Pool().get('production.cost.analysis.operation')
         cost_operations = []
         cost_moves = []
+
         for cost in costs:
             cost_moves = cost.calc_teoric_moves()
             cost_moves += cost.calc_real_moves()
@@ -467,6 +469,7 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
         OperationCost = Pool().get('production.cost.analysis.operation')
         cost_groups = []
         cost_operations = []
+
         for cost in costs:
             cost_groups += cost.calc_group('in', 'teoric')
             cost_groups += cost.calc_group('out', 'teoric')
@@ -488,7 +491,12 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
             if prod.state not in ('draft', 'waiting', 'assigned'):
                 continue
             inputs += prod.inputs
+            outputs += prod.outputs
+
+        cost_moves = self.get_move_costs(inputs, 'in', 'teoric')
+        cost_moves += self.get_move_costs(outputs, 'out', 'teoric')
         return cost_moves
+
     def calc_real_moves(self):
         inputs = []
         outputs = []
