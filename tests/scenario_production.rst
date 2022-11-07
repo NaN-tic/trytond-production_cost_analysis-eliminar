@@ -144,7 +144,6 @@ Make a production::
     >>> production.state
     'waiting'
 
-
 Check Analysis Creation::
 
     >>> Analysis = Model.get('production.cost.analysis')

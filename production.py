@@ -5,10 +5,8 @@ from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.modules.product import price_digits
 from trytond.pyson import Eval
-from trytond.config import config
 from trytond.transaction import Transaction
 
-price_digits = (16, config.getint('product', 'price_decimal', default=4))
 
 class Production(metaclass=PoolMeta):
     __name__ = 'production'
@@ -32,10 +30,6 @@ class Production(metaclass=PoolMeta):
         cost.cost_price = (self.cost_plan and self.cost_plan.cost_price
             or self.product.cost_price or 0)
         return cost
-
-    # @classmethod
-    # def draft(cls, productions):
-    #     pass
 
     @classmethod
     def wait(cls, productions):
@@ -91,7 +85,7 @@ class Production(metaclass=PoolMeta):
 
 
 class ProductionCostAnalysis(ModelSQL, ModelView):
-    ''' Production Cost Analysis '''
+    'Production Cost Analysis'
     __name__ = 'production.cost.analysis'
 
     company = fields.Many2One('company.company', 'Company', required=True,
@@ -258,12 +252,6 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
                 - (real_output_price or 0)
                 ).quantize(Decimal(10) ** -price_digits[1])
 
-            output_qty = sum([x.quantity
-                for x in cost.outputs_costs])  # TODO: compute_qty
-            output_price = 0
-            if output_qty:
-                output_price = float(sum([float(x.unit_price) * x.quantity
-                    for x in cost.outputs_costs])) / output_qty
             res['gross_teoric_margin'][cost.id] = Decimal((cost.list_price or 0)
                 - (cost.cost_price or 0)).quantize(Decimal(10) ** -price_digits[1])
             res['gross_total'][cost.id] = (

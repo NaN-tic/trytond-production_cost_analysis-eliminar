@@ -153,7 +153,7 @@ Check Analysis Creation::
     3
     >>> len(analysis.inputs_costs)
     2
-    .. >>> len(analysis.outputs_costs)
+    >>> len(analysis.outputs_costs)
     .. 1
 
 Test reset bom button::

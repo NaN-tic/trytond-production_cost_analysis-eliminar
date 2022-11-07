@@ -15,7 +15,3 @@ def register():
         production.ProductionCostAnalysisOperation,
         production.ProductionCostAnalysisOperationDeviation,
         module='production_cost_analysis', type_='model')
-    Pool.register(
-        module='production_cost_analysis', type_='wizard')
-    Pool.register(
-        module='production_cost_analysis', type_='report')
