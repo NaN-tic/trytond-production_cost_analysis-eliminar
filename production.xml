@@ -102,5 +102,86 @@
         <field name="rule_group" ref="rule_group_production_cost_analysis"/>
     </record>
 
+    <record model="ir.model.access" id="access_production_cost_analysis">
+        <field name="model" search="[('model', '=', 'production.cost.analysis')]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_delete" eval="False"/>
+    </record>
+    <record model="ir.model.access" id="access_production_cost_analysis_admin">
+        <field name="model" search="[('model', '=', 'production.cost.analysis')]"/>
+        <field name="group" ref="production.group_production"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_delete" eval="True"/>
+    </record>
+
+    <record model="ir.model.access" id="access_production_cost_analysis_move">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.move')]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_delete" eval="False"/>
+    </record>
+    <record model="ir.model.access" id="access_production_cost_analysis_move_admin">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.move')]"/>
+        <field name="group" ref="production.group_production"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_delete" eval="True"/>
+    </record>
+
+    <record model="ir.model.access" id="access_production_cost_analysis_deviation">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.move.deviation')]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_delete" eval="False"/>
+    </record>
+    <record model="ir.model.access" id="access_production_cost_analysis_deviation_admin">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.move.deviation')]"/>
+        <field name="group" ref="production.group_production"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_delete" eval="True"/>
+    </record>
+
+    <record model="ir.model.access" id="access_production_cost_analysis_operation">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.operation')]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_delete" eval="False"/>
+    </record>
+    <record model="ir.model.access" id="access_production_cost_analysis_operation_admin">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.operation')]"/>
+        <field name="group" ref="production.group_production"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_delete" eval="True"/>
+    </record>
+
+   <record model="ir.model.access" id="access_production_cost_analysis_operation_deviation">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.operation.deviation')]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_delete" eval="False"/>
+    </record>
+    <record model="ir.model.access" id="access_production_cost_analysis_operation_deviation_admin">
+        <field name="model" search="[('model', '=', 'production.cost.analysis.operation.deviation')]"/>
+        <field name="group" ref="production.group_production"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_delete" eval="True"/>
+    </record>
+
+
     </data>
 </tryton>

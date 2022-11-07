@@ -155,3 +155,4 @@ Check Analysis Creation::
     >>> len(analysis.outputs_costs)
     1
 
+
