@@ -56,7 +56,7 @@ Create Components::
     >>> component1, = template1.products
 
     >>> meter, = ProductUom.find([('name', '=', 'Meter')])
-    >>> centimeter, = ProductUom.find([('name', '=', 'centimeter')])
+    >>> centimeter, = ProductUom.find([('name', '=', 'Centimeter')])
 
     >>> template2 = ProductTemplate()
     >>> template2.name = 'component 2'
@@ -150,22 +150,22 @@ Check Analysis Creation::
     >>> Analysis = Model.get('production.cost.analysis')
     >>> analysis, = Analysis.find([])
     >>> len(analysis.costs)
-    3
+    6
     >>> len(analysis.inputs_costs)
     2
     >>> len(analysis.outputs_costs)
-    .. 1
+    1
 
 Test reset bom button::
 
     >>> for input in production.inputs:
     ...     input.quantity += 1
     >>> production.click('reset_bom', change=BOM_CHANGES)
-    .. >>> sorted([i.quantity for i in production.inputs]) == [10, 300]
-    .. True
+    >>> sorted([i.quantity for i in production.inputs]) == [10, 300]
+    True
     >>> output, = production.outputs
-    .. >>> output.quantity == 2
-    .. True
+    >>> output.quantity == 2
+    True
 
 Do the production::
 
@@ -195,9 +195,9 @@ Check Analysis Creation Real and deviation movements::
     2
     >>> len(analysis.real_outputs_costs)
     1
-    >>> len(analysis.real_input_deviation_costs)
-    0
-    >>> len(analysis.real_output_deviation_costs)
+    >>> len(analysis.input_deviation_costs)
+    2
+    >>> len(analysis.output_deviation_costs)
     1
 
 Make a production with effective date yesterday and running the day before::

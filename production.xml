@@ -182,6 +182,16 @@
         <field name="perm_delete" eval="True"/>
     </record>
 
-
+    <record model="ir.rule.group" id="rule_group_production_companies">
+        <field name="name">User in companies</field>
+        <field name="model" search="[('model', '=', 'production.cost.analysis')]"/>
+        <field name="global_p" eval="True"/>
+    </record>
+    <record model="ir.rule" id="rule_production_companies">
+        <field name="domain"
+            eval="[('company', 'in', Eval('companies', []))]"
+            pyson="1"/>
+        <field name="rule_group" ref="rule_group_production_companies"/>
+    </record>
     </data>
 </tryton>

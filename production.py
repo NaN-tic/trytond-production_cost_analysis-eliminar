@@ -91,7 +91,12 @@ class ProductionCostAnalysis(ModelSQL, ModelView):
     company = fields.Many2One('company.company', 'Company', required=True,
         readonly=True)
     number = fields.Char('Number', readonly=True)
-    product = fields.Many2One('product.product', 'Product', readonly=True)
+    product = fields.Many2One('product.product', 'Product',
+        context={
+            'company': Eval('company', -1),
+            },
+        depends={'company'},
+        readonly=True)
     cost_price = fields.Numeric("Cost Price", digits=price_digits,
         readonly=True)
     list_price = fields.Numeric('List Price', digits=price_digits,
